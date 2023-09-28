@@ -22,6 +22,7 @@ import '../widget.dart';
 import 'chart.dart';
 import 'grid_cartesian.dart';
 import 'point_chart.dart';
+import 'package:intl/intl.dart';
 
 class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
   BarDataSet({
@@ -32,6 +33,10 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
     PdfColor color = PdfColors.blue,
     bool? drawBorder,
     this.drawSurface = true,
+    this.drawLabel = false,
+    this.negativeValue = false,
+    this.greatherValue = 0,
+    this.lessValue = 100,
     this.surfaceOpacity = 1,
     this.width = 10,
     this.offset = 0,
@@ -46,17 +51,17 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
         assert((drawBorder ?? borderColor != null && color != borderColor) ||
             drawSurface),
         super(
-          legend: legend,
-          color: pointColor ?? color,
-          data: data,
-          buildValue: buildValue,
-          drawPoints: drawPoints,
-          pointSize: pointSize,
-          shape: shape,
-          valuePosition: valuePosition,
-          borderColor: borderColor,
-          borderWidth: borderWidth,
-        );
+        legend: legend,
+        color: pointColor ?? color,
+        data: data,
+        buildValue: buildValue,
+        drawPoints: drawPoints,
+        pointSize: pointSize,
+        shape: shape,
+        valuePosition: valuePosition,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
+      );
 
   final bool drawBorder;
 
@@ -69,15 +74,68 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
 
   final Axis axis;
 
+  final bool drawLabel;
+
+  final bool negativeValue;
+  final double greatherValue;
+  final double lessValue;
+
   void _drawSurface(Context context, ChartGrid grid, T value) {
     switch (axis) {
       case Axis.horizontal:
-        final y = (grid is CartesianGrid) ? grid.xAxisOffset : 0.0;
-        final p = grid.toChart(value.point);
-        final x = p.x + offset - width / 2;
-        final height = p.y - y;
+        if ( !negativeValue ) {
+          // Rotina padrão
+          final y = (grid is CartesianGrid) ? grid.xAxisOffset : 0.0;
+          final p = grid.toChart(value.point);
+          final x = p.x + offset - width / 2;
+          final height = p.y - y;
+          context.canvas.drawRect(x, y, width, height);
 
-        context.canvas.drawRect(x, y, width, height);
+          // print('draw');
+          // print('y $y');
+          // print('p $p');
+          // print('x $x');
+          // print('p.x ${p.x}');
+          // print('p.y ${p.y}');
+          // print('value.x ${value.x}');
+          // print('value.y ${value.y}');
+          // print('height $height');
+          // print('width $width');
+          // print('offset $offset');
+        } else {
+          // implementação provisória para tratar gráficos com valores negativos
+          // Feito apenas para Axis.horizontal
+          final y = (grid is CartesianGrid) ? grid.xAxisOffset : 0.0;
+          final p = grid.toChart(value.point);
+          final x = p.x + offset - width / 2;
+          final heightReal = p.y - y;
+          final startY = (y * (( 0.48 * 10 * 2 ) * 2)) - y ;
+          final height = (value.y < 0) ? startY - heightReal : heightReal - startY + y;
+          if(value.y < 0){
+            context.canvas.drawRect(x, startY - height, width, height);
+          } else if (value.y > 0){
+            context.canvas.drawRect(x, startY, width, height);
+          }
+          // print('draw negative');
+          // print('y $y');
+          // print('p $p');
+          // print('x $x');
+          // print('p.x ${p.x}');
+          // print('p.y ${p.y}');
+          // print('value.x ${value.x}');
+          // print('value.y ${value.y}');
+          // print('height $height');
+          // print('width $width');
+          // print('offset $offset');
+        }
+        // if ( value.y < 0) {
+        //   final height = p.y;
+        //   context.canvas.drawRect(x, y , width, height);
+        // } else {
+        //   final height = p.y - y;
+        //   context.canvas.drawRect(x, y + 50, width, height);
+        // }
+
         break;
       case Axis.vertical:
         final x = (grid is CartesianGrid) ? grid.yAxisOffset : 0.0;
@@ -85,10 +143,46 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
         final y = p.y + offset - width / 2;
         final height = p.x - x;
 
-        context.canvas.drawRect(x, y, height, width);
+        context.canvas.drawRect(x, y , height, width);
         break;
     }
   }
+
+  void _drawLabel(Context context, ChartGrid grid, T value) {
+    switch (axis) {
+      case Axis.horizontal:
+        if( value.y != 0) {
+          final NumberFormat numberFormat = NumberFormat("#,##0.00", "pt-BR");
+
+          final y = (grid is CartesianGrid) ? grid.xAxisOffset : 0.0;
+          final p = grid.toChart(value.point);
+          final x =
+          (p.x == double.infinity || p.x.isNaN ? 0.0 + offset + width : p.x + offset - width / 2);
+          final height = p.y - y;
+          final yPosition = (value.y > 0 ? y + height + 5.0 : y + height - 15.0 );
+          context.canvas
+            ..saveContext()
+            ..setFillColor(PdfColors.black)
+            ..drawString(
+              context.canvas.defaultFont!,
+              6,
+              numberFormat.format(value.y),
+              x,
+              yPosition,
+              // y + height + 5.0,
+            )
+            ..setFillColor(color)
+            ..restoreContext();
+        }
+
+
+        break;
+      case Axis.vertical:
+      // TODO:
+        break;
+    }
+  }
+
 
   @override
   void layout(Context context, BoxConstraints constraints,
@@ -128,6 +222,12 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
       }
     }
 
+    if (drawLabel) {
+      for (final value in data) {
+        _drawLabel(context, grid, value);
+      }
+    }
+
     if (drawBorder) {
       for (final value in data) {
         _drawSurface(context, grid, value);
@@ -142,11 +242,11 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
 
   @override
   ValuePosition automaticValuePosition(
-    PdfPoint point,
-    PdfPoint size,
-    PdfPoint? previous,
-    PdfPoint? next,
-  ) {
+      PdfPoint point,
+      PdfPoint size,
+      PdfPoint? previous,
+      PdfPoint? next,
+      ) {
     final pos = super.automaticValuePosition(point, size, previous, next);
     if (pos == ValuePosition.right || pos == ValuePosition.left) {
       return ValuePosition.top;
