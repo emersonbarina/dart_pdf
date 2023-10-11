@@ -34,6 +34,9 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
     bool? drawBorder,
     this.drawSurface = true,
     this.drawLabel = false,
+    this.drawlabelFontSize = 8,
+    this.drawLabelPrefixText = '',
+    this.drawLabelSpaceLeft = 0,
     this.negativeValue = false,
     this.greatherValue = 0,
     this.lessValue = 100,
@@ -75,6 +78,9 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
   final Axis axis;
 
   final bool drawLabel;
+  final double drawLabelFontSize;
+  final String drawLabelPrefixText;
+  final double drawLabelSpaceLeft;
 
   final bool negativeValue;
   final double greatherValue;
@@ -165,9 +171,9 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
             ..setFillColor(PdfColors.black)
             ..drawString(
               context.canvas.defaultFont!,
-              6,
-              numberFormat.format(value.y),
-              x,
+              drawlabelFontSize,
+              '${drawLabelPrefixText}${numberFormat.format(value.y)}',
+              x + drawLabelSpaceLeft,
               yPosition,
               // y + height + 5.0,
             )
