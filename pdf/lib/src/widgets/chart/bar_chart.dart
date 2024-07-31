@@ -172,8 +172,6 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
             ..saveContext()
             ..setFillColor(PdfColors.black)
             ..setTransform(
-              Matrix4.identity()
-                ..translate(x, y + height + 5.0) // Text position
                 ..rotateZ(angle)
             )
 
