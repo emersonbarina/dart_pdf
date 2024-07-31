@@ -163,16 +163,15 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
 
           final y = (grid is CartesianGrid) ? grid.xAxisOffset : 0.0;
           final p = grid.toChart(value.point);
-          final x = (p.x == double.infinity || p.x.isNaN ? 0.0 + offset + width : p.x + offset - width / 2);
+          final x =
+          (p.x == double.infinity || p.x.isNaN ? 0.0 + offset + width : p.x + offset - width / 2);
           final height = p.y - y;
           final yPosition = (value.y > 0 ? y + height + 5.0 : y + height - 15.0 );
-          final angle = 90;
+          final
 
           context.canvas
             ..saveContext()
             ..setFillColor(PdfColors.black)
-            ..rotateZ(angle)
-
             ..drawString(
               context.canvas.defaultFont!,
               drawLabelFontSize,
