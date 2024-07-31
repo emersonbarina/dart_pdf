@@ -159,16 +159,25 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
       case Axis.horizontal:
         if( value.y != 0) {
           final NumberFormat numberFormat = NumberFormat("#,##0.00", "pt-BR");
+          // https://github.com/DavBfr/dart_pdf/issues/975
 
           final y = (grid is CartesianGrid) ? grid.xAxisOffset : 0.0;
           final p = grid.toChart(value.point);
-          final x =
-          (p.x == double.infinity || p.x.isNaN ? 0.0 + offset + width : p.x + offset - width / 2);
+          final x = (p.x == double.infinity || p.x.isNaN ? 0.0 + offset + width : p.x + offset - width / 2);
           final height = p.y - y;
           final yPosition = (value.y > 0 ? y + height + 5.0 : y + height - 15.0 );
+          final angle = pi / 4;
+
           context.canvas
             ..saveContext()
             ..setFillColor(PdfColors.black)
+            ..setTransform(
+              Matrix4.identity()
+                ..translate(x, y + height + 5.0) // Text position
+                ..rotateZ(angle)
+                ..translate(-metrics.left, -metrics.top - metrics.height / 2), // Center of Rotation
+            )
+
             ..drawString(
               context.canvas.defaultFont!,
               drawLabelFontSize,
