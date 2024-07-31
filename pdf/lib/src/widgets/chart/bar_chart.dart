@@ -160,6 +160,7 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
         if( value.y != 0) {
           final NumberFormat numberFormat = NumberFormat("#,##0.00", "pt-BR");
           // https://github.com/DavBfr/dart_pdf/issues/975
+          // https://github.com/DavBfr/dart_pdf/issues/1269
 
           final y = (grid is CartesianGrid) ? grid.xAxisOffset : 0.0;
           final p = grid.toChart(value.point);
