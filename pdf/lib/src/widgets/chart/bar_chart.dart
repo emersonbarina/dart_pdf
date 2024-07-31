@@ -166,7 +166,7 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
           final x = (p.x == double.infinity || p.x.isNaN ? 0.0 + offset + width : p.x + offset - width / 2);
           final height = p.y - y;
           final yPosition = (value.y > 0 ? y + height + 5.0 : y + height - 15.0 );
-          final angle = pi / 4;
+          final angle = 90;
 
           context.canvas
             ..saveContext()
