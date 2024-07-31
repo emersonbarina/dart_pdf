@@ -171,9 +171,7 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
           context.canvas
             ..saveContext()
             ..setFillColor(PdfColors.black)
-            ..setTransform(
-                ..rotateZ(angle)
-            )
+            ..rotateZ(angle)
 
             ..drawString(
               context.canvas.defaultFont!,
