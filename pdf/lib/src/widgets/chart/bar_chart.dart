@@ -175,7 +175,6 @@ class BarDataSet<T extends PointChartValue> extends PointDataSet<T> {
               Matrix4.identity()
                 ..translate(x, y + height + 5.0) // Text position
                 ..rotateZ(angle)
-                ..translate(-metrics.left, -metrics.top - metrics.height / 2), // Center of Rotation
             )
 
             ..drawString(
