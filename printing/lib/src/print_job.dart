@@ -15,7 +15,7 @@
  */
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'callback.dart';
@@ -80,7 +80,7 @@ class PrintJobs {
     return job;
   }
 
-  /// Retrive an existing job
+  /// Retrieve an existing job
   PrintJob? getJob(int index) {
     return _printJobs[index];
   }

@@ -1,5 +1,43 @@
 # Changelog
 
+## 5.13.4
+
+- Improve Web Browser detection logic
+
+## 5.13.3
+
+- Update gfonts [Minh-Danh]
+- Add compatibility with web 1.1.0
+
+## 5.13.2
+
+- Added new printing output type value on iOS [Matteo Ricupero]
+- Workaround for iOS bug and force paper size [Matteo Ricupero]
+- Update package:web [Sabin Neupane]
+- Force the latest version of pdf_widget_wrapper
+- Tighten dependencies
+- Update Android build settings
+
+## 5.13.1
+
+- Fix Flutter SDK Minimum version
+
+## 5.13.0
+
+- Migrate to package:web and dart:js_interop
+- Set Flutter 3.19 as minimal version
+- Fix lints
+
+## 5.12.0
+
+- Refactor html imports
+- Implement PdfActionBarTheme for actions bar and add method scrollToPage [Aleksei]
+- Update cursors in zoom mode for web [Aleksei]
+- Output image sized to cropBox instead of mediaBox (iOS) [garrettApproachableGeek]
+- Replace Activity with Context for Service Compatibility (Android) [Heinrich]
+- Deprecate support for `convertHtml`
+- Implement alternative location for PDF.js [Aleksei]
+
 ## 5.11.1
 
 - Use pdfDpi on CPP lib
@@ -19,7 +57,7 @@
 - Fix raster crash on iOS and MacOS [Eduardo Vital Alencar Cunha]
 - Fix wrong format in directPrintPdf [<AlhasanAlQaisi>]
 - Add compatibility with Android Gradle Plugin 8.0 [asaarnak]
-- Add compatibility with  Flutter 3.10
+- Add compatibility with Flutter 3.10
 - Re-init UIPrinter cause issues with delegate [Hasan]
 
 ## 5.10.3

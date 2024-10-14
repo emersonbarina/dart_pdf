@@ -27,7 +27,7 @@ class PrintingInfo {
     this.canRaster = false,
   });
 
-  /// Create an information object from a dictionnary
+  /// Create an information object from a dictionary
   factory PrintingInfo.fromMap(Map<dynamic, dynamic> map) => PrintingInfo(
         directPrint: map['directPrint'] ?? false,
         dynamicLayout: map['dynamicLayout'] ?? false,
@@ -66,7 +66,8 @@ class PrintingInfo {
   final bool canRaster;
 
   @override
-  String toString() => '''$runtimeType:
+  String toString() => '''
+$runtimeType:
   canPrint: $canPrint
   directPrint: $directPrint
   dynamicLayout: $dynamicLayout

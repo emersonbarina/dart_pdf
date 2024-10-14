@@ -25,6 +25,9 @@ func dataProviderReleaseDataCallback(info _: UnsafeMutableRawPointer?, data: Uns
 // Each printer will be identified by its URL string
 var selectedPrinters = [String: UIPrinter]()
 
+// Holds the printer after it was picked
+var pickedPrinter: UIPrinter?
+
 public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate {
     private var printing: PrintingPlugin
     public var index: Int
@@ -36,6 +39,7 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
     private let semaphore = DispatchSemaphore(value: 0)
     private var dynamic = false
     private var currentSize: CGSize?
+    private var forceCustomPrintPaper = false
 
     public init(printing: PrintingPlugin, index: Int) {
         self.printing = printing
@@ -149,14 +153,28 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
             return paperList[0]
         }
 
+        if forceCustomPrintPaper {
+            return CustomPrintPaper(size: currentSize!)
+        }
+
+        for paper in paperList {
+            if (paper.paperSize.width == currentSize!.width && paper.paperSize.height == currentSize!.height) ||
+                (paper.paperSize.width == currentSize!.height && paper.paperSize.height == currentSize!.width)
+            {
+                return paper
+            }
+        }
+
         let bestPaper = UIPrintPaper.bestPaper(forPageSize: currentSize!, withPapersFrom: paperList)
 
         return bestPaper
     }
 
-    func printPdf(name: String, withPageSize size: CGSize, andMargin margin: CGRect, withPrinter printerID: String?, dynamically dyn: Bool) {
+    func printPdf(name: String, withPageSize size: CGSize, andMargin margin: CGRect, withPrinter printerID: String?, dynamically dyn: Bool, outputType type: UIPrintInfo.OutputType, forceCustomPrintPaper: Bool = false) {
         currentSize = size
         dynamic = dyn
+        self.forceCustomPrintPaper = forceCustomPrintPaper
+
         let printing = UIPrintInteractionController.isPrintingAvailable
         if !printing {
             self.printing.onCompleted(printJob: self, completed: false, error: "Printing not available")
@@ -175,7 +193,7 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
 
         let printInfo = UIPrintInfo.printInfo()
         printInfo.jobName = jobName!
-        printInfo.outputType = .general
+        printInfo.outputType = type
         if orientation != nil {
             printInfo.orientation = orientation!
             orientation = nil
@@ -197,6 +215,14 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
 
             if !selectedPrinters.keys.contains(printerURLString) {
                 selectedPrinters[printerURLString] = UIPrinter(url: printerURL!)
+            }
+
+            // Sometimes using UIPrinter(url:) gives a non-contactable printer.
+            // https://stackoverflow.com/questions/34602302/creating-a-working-uiprinter-object-from-url-for-dialogue-free-printing
+            // This lets use a printer saved during picking and fall back using a printer created with UIPrinter(url:)
+            if pickedPrinter != nil && selectedPrinters[printerURLString]!.url == pickedPrinter?.url {
+                controller.print(to: pickedPrinter!, completionHandler: completionHandler)
+                return
             }
 
             selectedPrinters[printerURLString]!.contactPrinter { available in
@@ -283,7 +309,7 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
                     // clear WKWebView cache
                     if #available(iOS 9.0, *) {
                         WKWebsiteDataStore.default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
-                            records.forEach { record in
+                            for record in records {
                                 WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
                             }
                         }
@@ -320,6 +346,9 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
                 "model": printer.makeAndModel as Any,
                 "location": printer.displayLocation as Any,
             ]
+
+            pickedPrinter = printer
+
             result(data)
         }
 
@@ -350,8 +379,11 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
                 guard let page = document.page(at: pageNum + 1) else { continue }
                 let angle = CGFloat(page.rotationAngle) * CGFloat.pi / -180
                 let rect = page.getBoxRect(.mediaBox)
-                let width = Int(abs((cos(angle) * rect.width + sin(angle) * rect.height) * scale))
-                let height = Int(abs((cos(angle) * rect.height + sin(angle) * rect.width) * scale))
+                let rectCrop = page.getBoxRect(.cropBox)
+                let diffHeight = rectCrop.height - rect.height
+                let diffWidth = rectCrop.width - rect.width
+                let width = Int(abs((cos(angle) * rectCrop.width + sin(angle) * rectCrop.height) * scale))
+                let height = Int(abs((cos(angle) * rectCrop.height + sin(angle) * rectCrop.width) * scale))
                 let stride = width * 4
                 var data = Data(repeating: 0, count: stride * height)
 
@@ -371,7 +403,8 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
                         context!.translateBy(x: CGFloat(width) / 2, y: CGFloat(height) / 2)
                         context!.scaleBy(x: scale, y: scale)
                         context!.rotate(by: angle)
-                        context!.translateBy(x: -rect.width / 2, y: -rect.height / 2)
+                        context!.translateBy(x: -rectCrop.width / 2, y: -rectCrop.height / 2)
+                        context!.translateBy(x: diffWidth, y: diffHeight)
                         context!.drawPDFPage(page)
                     }
                 }
@@ -392,7 +425,6 @@ public class PrintJob: UIPrintPageRenderer, UIPrintInteractionControllerDelegate
             "directPrint": true,
             "dynamicLayout": true,
             "canPrint": true,
-            "canConvertHtml": true,
             "canShare": true,
             "canRaster": true,
             "canListPrinters": false,

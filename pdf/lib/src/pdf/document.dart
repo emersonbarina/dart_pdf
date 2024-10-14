@@ -27,7 +27,9 @@ import 'format/stream.dart';
 import 'format/string.dart';
 import 'format/xref.dart';
 import 'graphic_state.dart';
-import 'io/vm.dart' if (dart.library.js) 'io/js.dart';
+import 'io/na.dart'
+    if (dart.library.io) 'io/vm.dart'
+    if (dart.library.js_interop) 'io/js.dart';
 import 'obj/catalog.dart';
 import 'obj/encryption.dart';
 import 'obj/font.dart';
@@ -251,11 +253,13 @@ class PdfDocument {
 
   /// Generate the PDF document as a memory file
   Future<Uint8List> save() async {
-    final os = PdfStream();
-    if (prev != null) {
-      os.putBytes(prev!.bytes);
-    }
-    await _write(os);
-    return os.output();
+    return pdfCompute(() async {
+      final os = PdfStream();
+      if (prev != null) {
+        os.putBytes(prev!.bytes);
+      }
+      await _write(os);
+      return os.output();
+    });
   }
 }

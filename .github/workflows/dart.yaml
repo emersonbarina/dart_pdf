@@ -11,10 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
       - name: Enable Linux for flutter
         run: flutter config --enable-linux-desktop
       - name: Update repo
@@ -28,7 +33,7 @@ jobs:
       - name: Run readme tests
         run: make test-readme
       - name: Verify that nothing changed
-        run: test -z "$(git status --porcelain)"
+        run: test -z "$(git status --porcelain | tee /dev/stderr)"
       - name: Push to codecov
         run: bash <(curl -s https://codecov.io/bash)
       - name: Prepare build
@@ -44,7 +49,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -59,7 +64,7 @@ jobs:
     runs-on: macos-12
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -77,10 +82,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: master
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
       - name: Enable Linux for flutter
         run: flutter config --enable-linux-desktop
       - name: Update repo
@@ -94,7 +104,7 @@ jobs:
       - name: Run readme tests
         run: make test-readme
       - name: Verify that nothing changed
-        run: test -z "$(git status --porcelain)"
+        run: test -z "$(git status --porcelain | tee /dev/stderr)"
       - name: Push to codecov
         run: bash <(curl -s https://codecov.io/bash)
       - name: Prepare build
@@ -110,7 +120,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: master
@@ -125,7 +135,7 @@ jobs:
     runs-on: macos-12
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: master
